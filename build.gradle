@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id "io.github.goooler.shadow" version "8.1.7"
+    id 'maven-publish'
 }
 
 group = 'to.itsme'
@@ -60,10 +61,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ["-parameters"]
 }
 
-tasks.register('wrapper', Wrapper) {
-    gradleVersion = '8.7'
-}
-
 processResources {
     def props = [version: version]
     inputs.properties props
@@ -81,4 +78,17 @@ shadowJar {
     relocate("org.bstats", "${shadePath}bstats")
 
     archiveFileName = "${project.name}-${project.version}.jar"
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/itsme-to/ItsMyConfig"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
