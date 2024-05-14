@@ -60,6 +60,10 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ["-parameters"]
 }
 
+tasks.register('wrapper', Wrapper) {
+    gradleVersion = '8.7'
+}
+
 processResources {
     def props = [version: version]
     inputs.properties props

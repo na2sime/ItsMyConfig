@@ -50,11 +50,25 @@ public final class DynamicPlaceHolder extends PlaceholderExpansion {
     public @Nullable String onPlaceholderRequest(final Player player, @NotNull String params) {
         params = PlaceholderAPI.setPlaceholders(player, params.replaceAll("\\$\\((.*?)\\)\\$", "%$1%"));
 
-        final String[] strings = params.split("_");
+        String[] strings;
+
+        if (params.contains("{") && params.contains("}")) {
+            String placeholderInBraces = params.substring(params.indexOf("{") + 1, params.indexOf("}"));
+            String uniqueString = "uniqueStringNoUnderscores";
+            params = params.replace("{" + placeholderInBraces + "}", uniqueString);
+            strings = params.split("_");
+            for (int i = 0; i < strings.length; i++) {
+                if (strings[i].equals(uniqueString)) {
+                    strings[i] = placeholderInBraces;
+                }
+            }
+        } else {
+            strings = params.split("_");
+        }
+
         if (strings.length == 0) {
             return "Illegal Argument";
         }
-
         if (strings.length >= 3 && strings[0].equalsIgnoreCase("font")) {
             if (strings[1].equalsIgnoreCase("latin")) {
                 try {
@@ -67,10 +81,8 @@ public final class DynamicPlaceHolder extends PlaceholderExpansion {
                 String message = strings[2].toLowerCase();
                 return Font.SMALL_CAPS.apply(message);
             }
-
             return "ERROR";
         }
-
         if (strings.length >= 4 && strings[0].equalsIgnoreCase("progress")) {
             String identifier = strings[1];
             double value;
@@ -81,20 +93,16 @@ public final class DynamicPlaceHolder extends PlaceholderExpansion {
             } catch (NumberFormatException e) {
                 return "Illegal Number Format";
             }
-
             final ProgressBar progressBar = progressBarBucket.getProgressBar(identifier);
             if (progressBar == null) {
                 return String.format("Not Found Progress Bar(%s)", identifier);
             }
-
             return ChatColor.translateAlternateColorCodes('&', progressBar.render(value, maxValue));
         }
-
         final String placeholder = strings[0];
         if (!plugin.getPlaceholderManager().has(placeholder)) {
             return "Placeholder not found";
         }
-
         final PlaceholderData data = plugin.getPlaceholderManager().get(placeholder);
         final String[] args = getArgs(strings).split("::");
         return data.asString(player, args);
